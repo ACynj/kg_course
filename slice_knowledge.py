@@ -78,7 +78,7 @@ def extract_text_from_pdf(pdf_path, start_page=1, end_page=None, password=None, 
                             lang='chi_sim+eng',  # 中英文识别
                             config='--psm 6'  # 使用自动页面分割（适合常规文档）
                         )
-                        extracted_text += f"第{page_num}页（OCR 模式，DPI{dpi}）:\n{ocr_text.strip()}\n\n"
+                        extracted_text += f"{ocr_text.strip()}\n"
 
                 except Exception as e:
                     extracted_text += f"第{page_num}页 OCR 失败: {str(e)}\n"
@@ -152,7 +152,7 @@ def process_csv(csv_path, input_dir, output_dir, dpi=300, poppler_path=None):
 
 # 2. 配置参数
 if __name__ == "__main__":
-    csv_path = "./course_knowledge_maper.csv"  # 上传的 CSV 文件路径
+    csv_path = "./course_knowledge_maper3.csv"  # 上传的 CSV 文件路径
     input_directory = "./dataset"  # 输入 PDF 文件目录
     output_directory = "./dataset/textbook_slice"  # 输出 TXT 文件目录
     poppler_path = r'D:\develop\popper\Release-24.08.0-0\poppler-24.08.0\Library\bin'  # Windows用户必须填写实际路径
