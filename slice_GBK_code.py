@@ -1,11 +1,11 @@
-import PyPDF2
-from PyPDF2 import PdfReader, PdfWriter
-from pdf2image import convert_from_path
-import io
-from PIL import Image
+# 处理特殊格式 GBK-EUC-H
+import pdfplumber
 import os
 import pandas as pd
 from aip import AipOcr
+from pdf2image import convert_from_path
+import io
+from PIL import Image
 
 # 百度云 OCR 配置
 APP_ID = '118686718'
@@ -21,25 +21,14 @@ def extract_text_from_pdf(pdf_path, start_page=1, end_page=None, password=None, 
     extracted_text = ""
 
     try:
-        with open(pdf_path, 'rb') as file:
-            pdf_reader = PdfReader(file, strict=False)  # 宽松模式处理非标准 PDF
-
-            # 处理加密 PDF
-            if pdf_reader.is_encrypted:
-                if password:
-                    decrypted = pdf_reader.decrypt(password)
-                    if not decrypted:
-                        raise ValueError("无效密码或不支持的加密版本")
-                else:
-                    raise ValueError("PDF 已加密，请提供解密密码")
-
-            total_pages = len(pdf_reader.pages)
+        with pdfplumber.open(pdf_path) as pdf:
+            total_pages = len(pdf.pages)
             end_page = end_page or total_pages  # 默认处理到最后一页
             page_range = range(max(1, start_page), min(total_pages, end_page) + 1)  # 1 - based 页码范围
 
             for page_num in page_range:
                 page_index = page_num - 1  # 转换为 0 - based 索引
-                page = pdf_reader.pages[page_index]
+                page = pdf.pages[page_index]
 
                 try:
                     # 优先文本提取（增加健壮性处理）
@@ -48,8 +37,8 @@ def extract_text_from_pdf(pdf_path, start_page=1, end_page=None, password=None, 
                         extracted_text += f"{text}\n"
                         continue
 
-                except PyPDF2.errors.PdfReadError as e:
-                    # 捕获文本提取时的解析错误（如未知宽度问题）
+                except Exception as e:
+                    # 捕获文本提取时的解析错误
                     print(f"文本提取错误（第{page_num}页）: {str(e)}，尝试 OCR 处理")
                     text = None  # 强制进入 OCR 模式
 
@@ -91,10 +80,6 @@ def extract_text_from_pdf(pdf_path, start_page=1, end_page=None, password=None, 
 
     except FileNotFoundError:
         raise FileNotFoundError(f"错误：文件路径不存在 - {pdf_path}")
-    except ValueError as e:
-        raise ValueError(f"加密处理错误: {str(e)}")
-    except PyPDF2.errors.PdfReadError as e:
-        raise RuntimeError(f"PDF 解析错误: 可能文件损坏或格式不支持 - {str(e)}")
     except Exception as e:
         raise Exception(f"发生未知错误: {str(e)}")
 
@@ -114,8 +99,8 @@ def process_csv(csv_path, input_dir, output_dir, dpi=300, poppler_path=None):
     # 遍历 CSV 文件中的每一行
     for index, row in df.iterrows():
         book_filename = row['书籍文件名称']
-        start_page = int(row['开始页码'])
-        end_page = int(row['结束页码'])
+        start_page = row['开始页码']
+        end_page = row['结束页码']
         course_number = row['课程编号']
         course_name = row['课程名称']
         chapter = row['章']
@@ -157,7 +142,7 @@ def process_csv(csv_path, input_dir, output_dir, dpi=300, poppler_path=None):
 
 # 2. 配置参数
 if __name__ == "__main__":
-    csv_path = "mapper/course_knowledge_mapper13.csv"  # 上传的 CSV 文件路径
+    csv_path = "mapper/course_knowledge_mapper9.csv"  # 上传的 CSV 文件路径
     input_directory = "./dataset"  # 输入 PDF 文件目录
     output_directory = "./dataset/textbook_slice"  # 输出 TXT 文件目录
     poppler_path = r'D:\develop\popper\Release-24.08.0-0\poppler-24.08.0\Library\bin'  # Windows用户必须填写实际路径
