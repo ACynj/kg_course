@@ -157,7 +157,7 @@ def process_csv(csv_path, input_dir, output_dir, dpi=300, poppler_path=None):
 
 # 2. 配置参数
 if __name__ == "__main__":
-    csv_path = "mapper/course_knowledge_mapper13.csv"  # 上传的 CSV 文件路径
+    csv_path = "mapper/course_knowledge_mapper38.csv"  # 上传的 CSV 文件路径
     input_directory = "./dataset"  # 输入 PDF 文件目录
     output_directory = "./dataset/textbook_slice"  # 输出 TXT 文件目录
     poppler_path = r'D:\develop\popper\Release-24.08.0-0\poppler-24.08.0\Library\bin'  # Windows用户必须填写实际路径
